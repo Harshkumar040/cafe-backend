@@ -26,6 +26,9 @@ const updateUser = async (req, res) => {
   try {
     const id = req.params.id;
     const body = req.body;
+    if (body.password) {
+      body.password = await bcrypt.hash(body.password, 10);
+    }
     const result = await userModel.findByIdAndUpdate(id, body);
     res.status(200).json(result);
   } catch (err) {
@@ -37,7 +40,21 @@ const showUsers = async (req, res) => {
   try {
     const result = await userModel.find();
     res.status(200).json(result);
-  } catch (err) {}
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({ message: "Something went wrong" });
+  }
+};
+
+const getUser = async (req, res) => {
+  try {
+    const id = req.params.id
+    const result = await userModel.findOne({_id:id});
+    res.status(200).json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({ message: "Something went wrong" });
+  }
 };
 
 const login = async (req, res) => {
@@ -48,12 +65,12 @@ const login = async (req, res) => {
       const isMatch = await bcrypt.compare(password, existingUser.password);
       if (isMatch) {
         const userObj = {
-          username: existingUser.username,
+          firstName: existingUser.firstName,
           email: existingUser.email,
           role: existingUser.role,
         };
         const token = jwt.sign(userObj, SECRET, { expiresIn: "1h" });
-        res.status(200).json({ user: userObj, token });
+        res.status(200).json({ ...userObj, token });
       } else {
         res.status(400).json({ message: "Invalid Password" });
       }
@@ -67,10 +84,11 @@ const login = async (req, res) => {
 };
 const register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { firstName, lastName, email, password } = req.body;
     const hashedpwd = await bcrypt.hash(password, 10);
     const user = {
-      username,
+      firstName,
+      lastName,
       email,
       password: hashedpwd,
     };
@@ -82,4 +100,32 @@ const register = async (req, res) => {
   }
 };
 
-export { register,login,showUsers,deleteUser,updateUser,profile };
+const updateProfile = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { firstName, lastName, email, password } = req.body;
+    const hashedpwd = await bcrypt.hash(password, 10);
+    const userObj = {
+      firstName,
+      lastName,
+      email,
+      password: hashedpwd,
+    };
+    const result = await userModel.findByIdAndUpdate(id, userObj);
+    res.status(200).json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({ message: "Something went wrong" });
+  }
+};
+
+export {
+  register,
+  login,
+  showUsers,
+  deleteUser,
+  updateUser,
+  profile,
+  updateProfile,
+  getUser
+};

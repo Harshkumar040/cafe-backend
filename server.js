@@ -11,6 +11,14 @@ app.use(express.json());
 const DBUSER = encodeURIComponent(process.env.DBUSER);
 const DBPASS = encodeURIComponent(process.env.DBPASS);
 
+
+// mongoose.connect(`mongodb://localhost:27017/merncafe`).then(() => {
+//   app.listen(8080, () => {
+//     console.log("Server started");
+//   });
+// });
+
+
 mongoose.connect(
   `mongodb+srv://${DBUSER}:${DBPASS}@cluster0.n9ugke5.mongodb.net/merncafe?retryWrites=true&w=majority&appName=Cluster0`
 ).then(() => {
